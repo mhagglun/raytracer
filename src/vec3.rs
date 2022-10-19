@@ -9,8 +9,10 @@ pub struct Vec3 {
 }
 
 // Type aliases for vec3
-pub type Point3 = Vec3; /// Point in 3D space
-pub type Color = Vec3; /// RGB color
+pub type Point3D = Vec3;
+/// Point in 3D space
+pub type Color = Vec3;
+/// RGB color
 
 impl Vec3 {
     pub fn new(x: f32, y: f32, z: f32) -> Vec3 {
