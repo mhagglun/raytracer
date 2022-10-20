@@ -1,15 +1,38 @@
+mod hit;
 mod ray;
 mod sphere;
 mod vec3;
 
-use image::{ImageBuffer, Rgb, RgbImage};
-use ray::{ray_color, Ray};
+use hit::{Hittable, World};
+use ray::Ray;
 use sphere::Sphere;
-use vec3::Vec3;
+use vec3::{Color, Point3D, Vec3};
+
+/// Linearly blends the color depending on the height of the y-coordinate after scaling the ray
+/// direction to unit length
+fn ray_color(ray: &Ray, world: &World) -> Color {
+    if let Some(rec) = world.hit(ray, 0.0, f32::INFINITY) {
+        return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
+    }
+    let unit_direction = ray.direction.unit_vector();
+    let t = 0.5 * (unit_direction.y + 1.0);
+    (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
+}
 
 fn main() {
-    // Camera
+    // Image
     let aspect_ratio = 1.0;
+    const IMAGE_WIDTH: u32 = 256;
+    const IMAGE_HEIGHT: u32 = 256;
+
+    // World
+    let mut world = World::new();
+    world.add(Box::new(Sphere::new(Point3D::new(0.0, 0.0, -1.0), 0.5)));
+    world.add(Box::new(Sphere::new(
+        Point3D::new(0.0, -100.5, -1.0),
+        100.0,
+    )));
+    // Camera
     let viewport_height = 2.0;
     let viewport_width = aspect_ratio * viewport_height;
     let focal_length = 1.0;
@@ -20,32 +43,25 @@ fn main() {
     let lower_left_corner =
         origin - 0.5 * horizontal - 0.5 * vertical - Vec3::new(0.0, 0.0, focal_length);
 
-    let sphere = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5);
-
-    let image_width: u32 = 400;
-    let image_height: u32 = image_width / aspect_ratio as u32;
-
     // Render
-    let mut buffer: RgbImage = ImageBuffer::new(image_width, image_height);
+    println!("P3\n{} {}\n255", IMAGE_WIDTH, IMAGE_HEIGHT);
 
-    for (x, y, pixel) in buffer.enumerate_pixels_mut() {
-        let u = x as f32 / (image_width - 1) as f32;
-        let v = y as f32 / (image_height - 1) as f32;
+    for y in (0..IMAGE_HEIGHT).rev() {
+        for x in 0..IMAGE_WIDTH {
+            let u = x as f32 / (IMAGE_WIDTH - 1) as f32;
+            let v = y as f32 / (IMAGE_HEIGHT - 1) as f32;
+            let r = Ray::new(
+                origin,
+                lower_left_corner + u * horizontal + v * vertical - origin,
+            );
 
-        let r = Ray::new(
-            origin,
-            lower_left_corner + u * horizontal + v * vertical - origin,
-        );
-        let c = ray_color(sphere, r);
-        let ir = (255.999 * c.x.sqrt()) as u8;
-        let ig = (255.999 * c.y.sqrt()) as u8;
-        let ib = (255.999 * c.z.sqrt()) as u8;
+            let c = ray_color(&r, &world);
 
-        *pixel = Rgb([ir, ig, ib]);
+            let ir = (255.999 * c.x.sqrt()) as u8;
+            let ig = (255.999 * c.y.sqrt()) as u8;
+            let ib = (255.999 * c.z.sqrt()) as u8;
+
+            println!("{} {} {}", ir, ig, ib);
+        }
     }
-
-    match buffer.save("image.png") {
-        Err(e) => eprintln!("Error writing file: {}", e),
-        Ok(()) => println!("Done."),
-    };
 }

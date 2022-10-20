@@ -31,15 +31,12 @@ impl Vec3 {
         )
     }
 
-    pub fn length_squared(&self) -> f32 {
-        {
-            let ref this = self;
-            this.x * self.x + this.y * self.y + this.z * self.z
-        }
-    }
-
     pub fn length(&self) -> f32 {
         self.length_squared().sqrt()
+    }
+
+    pub fn length_squared(&self) -> f32 {
+        Vec3::dot(self, *self)
     }
 
     pub fn unit_vector(&self) -> Vec3 {
