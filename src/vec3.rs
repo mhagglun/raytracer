@@ -1,4 +1,5 @@
-use std::ops::{Add, AddAssign, Mul, Neg, Sub};
+use rand::Rng;
+use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub};
 
 #[derive(Clone, Copy)]
 /// Vector class for storing geometric vectors and colors.
@@ -46,6 +47,51 @@ impl Vec3 {
             y: self.y / len,
             z: self.z / len,
         }
+    }
+
+    pub fn random() -> Vec3 {
+        let mut rng = rand::thread_rng();
+        Vec3 {
+            x: rng.gen_range(-1.0..1.0),
+            y: rng.gen_range(-1.0..1.0),
+            z: rng.gen_range(-1.0..1.0),
+        }
+    }
+
+    pub fn random_in_unit_sphere() -> Vec3 {
+        loop {
+            let v = Vec3::random();
+            if v.length() < 1.0 {
+                return v;
+            }
+        }
+    }
+
+    pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+        let in_unit_sphere = Self::random_in_unit_sphere();
+        if in_unit_sphere.dot(normal) > 0.0 {
+            // Is in the same hemisphere as the normal
+            in_unit_sphere
+        } else {
+            (-1.0) * in_unit_sphere
+        }
+    }
+
+    pub fn format_color(self, samples_per_pixel: u32) -> String {
+        let ir = (256.0
+            * (self.x / (samples_per_pixel as f32))
+                .sqrt()
+                .clamp(0.0, 0.999)) as u32;
+        let ig = (256.0
+            * (self.y / (samples_per_pixel as f32))
+                .sqrt()
+                .clamp(0.0, 0.999)) as u32;
+        let ib = (256.0
+            * (self.z / (samples_per_pixel as f32))
+                .sqrt()
+                .clamp(0.0, 0.999)) as u32;
+
+        format!("{} {} {}", ir, ig, ib)
     }
 }
 
@@ -115,6 +161,18 @@ impl Mul<Vec3> for Vec3 {
             x: self.x * rhs.x,
             y: self.y * rhs.y,
             z: self.z * rhs.z,
+        }
+    }
+}
+
+impl Div<f32> for Vec3 {
+    type Output = Vec3;
+
+    fn div(self, lhs: f32) -> Vec3 {
+        Vec3 {
+            x: self.x / lhs,
+            y: self.y / lhs,
+            z: self.z / lhs,
         }
     }
 }

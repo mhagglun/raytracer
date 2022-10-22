@@ -1,18 +1,27 @@
+mod camera;
 mod hit;
 mod ray;
 mod sphere;
 mod vec3;
 
+use camera::Camera;
 use hit::{Hittable, World};
+use rand::Rng;
 use ray::Ray;
 use sphere::Sphere;
 use vec3::{Color, Point3D, Vec3};
 
 /// Linearly blends the color depending on the height of the y-coordinate after scaling the ray
 /// direction to unit length
-fn ray_color(ray: &Ray, world: &World) -> Color {
-    if let Some(rec) = world.hit(ray, 0.0, f32::INFINITY) {
-        return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
+fn ray_color(ray: &Ray, world: &World, depth: u32) -> Color {
+    if depth == 0 {
+        // Avoid inf recursion
+        return Color::new(0.0, 0.0, 0.0);
+    }
+    if let Some(rec) = world.hit(ray, 0.001, f32::INFINITY) {
+        let target = rec.point + Vec3::random_in_hemisphere(rec.normal);
+        let ray = Ray::new(rec.point, target - rec.point);
+        return 0.5 * ray_color(&ray, world, depth - 1);
     }
     let unit_direction = ray.direction.unit_vector();
     let t = 0.5 * (unit_direction.y + 1.0);
@@ -21,9 +30,11 @@ fn ray_color(ray: &Ray, world: &World) -> Color {
 
 fn main() {
     // Image
-    let aspect_ratio = 1.0;
+    const ASPECT_RATIO: f32 = 16.0 / 9.0;
     const IMAGE_WIDTH: u32 = 256;
-    const IMAGE_HEIGHT: u32 = 256;
+    const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
+    const MAX_DEPTH: u32 = 4;
+    const SAMPLES_PER_PIXEL: u32 = 100;
 
     // World
     let mut world = World::new();
@@ -33,35 +44,27 @@ fn main() {
         100.0,
     )));
     // Camera
-    let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
-
-    let origin = Vec3::new(0.0, 0.0, 0.0);
-    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner =
-        origin - 0.5 * horizontal - 0.5 * vertical - Vec3::new(0.0, 0.0, focal_length);
-
+    let camera = Camera::new();
     // Render
     println!("P3\n{} {}\n255", IMAGE_WIDTH, IMAGE_HEIGHT);
 
+    let mut rng = rand::thread_rng();
     for y in (0..IMAGE_HEIGHT).rev() {
         for x in 0..IMAGE_WIDTH {
-            let u = x as f32 / (IMAGE_WIDTH - 1) as f32;
-            let v = y as f32 / (IMAGE_HEIGHT - 1) as f32;
-            let r = Ray::new(
-                origin,
-                lower_left_corner + u * horizontal + v * vertical - origin,
-            );
+            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-            let c = ray_color(&r, &world);
+            for _ in 0..SAMPLES_PER_PIXEL {
+                let rndm_x: f32 = rng.gen();
+                let rndm_y: f32 = rng.gen();
 
-            let ir = (255.999 * c.x.sqrt()) as u8;
-            let ig = (255.999 * c.y.sqrt()) as u8;
-            let ib = (255.999 * c.z.sqrt()) as u8;
+                let u = ((x as f32) + rndm_x) / ((IMAGE_WIDTH - 1) as f32);
+                let v = ((y as f32) + rndm_y) / ((IMAGE_HEIGHT - 1) as f32);
 
-            println!("{} {} {}", ir, ig, ib);
+                let ray = camera.get_ray(u, v);
+                pixel_color += ray_color(&ray, &world, MAX_DEPTH);
+            }
+
+            println!("{}", pixel_color.format_color(SAMPLES_PER_PIXEL));
         }
     }
 }
