@@ -37,12 +37,13 @@ impl Hittable for Sphere {
                 if *root < t_max && *root > t_min {
                     let p = ray.point_ray(*root);
                     let normal = (1.0 / self.radius) * (p - self.center);
-                    let front_face = ray.direction.dot(normal) < 0.0;
+                    let outward_facing = ray.direction.dot(normal) < 0.0;
 
                     return Some(HitRecord {
                         t: *root,
                         point: p,
-                        normal: if front_face { normal } else { -normal },
+                        normal: if outward_facing { normal } else { -normal },
+                        outward_facing,
                         mtrl: self.mtrl.clone(),
                     });
                 }

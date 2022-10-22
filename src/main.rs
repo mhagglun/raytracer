@@ -18,6 +18,8 @@ use ray::Ray;
 use sphere::Sphere;
 use vec3::{Color, Point3D};
 
+use crate::{material::Dielectric, vec3::Vec3};
+
 /// Linearly blends the color depending on the height of the y-coordinate after scaling the ray
 /// direction to unit length
 fn ray_color(ray: &Ray, world: &World, depth: u32) -> Color {
@@ -51,8 +53,8 @@ fn main() {
 
     let mat_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
     let mat_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
-    let mat_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8)));
-    let mat_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2)));
+    let mat_left = Rc::new(Dielectric::new(1.5));
+    let mat_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
 
     let sphere_ground = Sphere::new(Point3D::new(0.0, -100.5, -1.0), 100.0, mat_ground);
     let sphere_center = Sphere::new(Point3D::new(0.0, 0.0, -1.0), 0.5, mat_center);
@@ -65,8 +67,13 @@ fn main() {
     world.add(Box::new(sphere_right));
 
     // Camera
-    let camera = Camera::new();
-
+    let camera = Camera::new(
+        Point3D::new(-2.0, 2.0, 1.0),
+        Point3D::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        90.0,
+        ASPECT_RATIO,
+    );
     // Start Rendering
     println!("P3\n{} {}\n255", IMAGE_WIDTH, IMAGE_HEIGHT);
 

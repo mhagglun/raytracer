@@ -56,6 +56,14 @@ impl Vec3 {
         self - 2.0 * self.dot(normal) * normal
     }
 
+    /// Refraction accordning to Snell's Law
+    pub fn refract(self, normal: Vec3, ref_idx: f32) -> Vec3 {
+        let cos_theta = ((-1.0) * self).dot(normal).min(1.0);
+        let r_ortho = ref_idx * (self + cos_theta * normal);
+        let r_parallel = -(1.0 - r_ortho.length().powi(2)).abs().sqrt() * normal;
+        r_ortho + r_parallel
+    }
+
     pub fn near_zero(self) -> bool {
         self.x.abs() < EPSILON && self.y.abs() < EPSILON && self.z.abs() < EPSILON
     }

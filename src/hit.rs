@@ -9,6 +9,7 @@ use crate::{
 pub struct HitRecord {
     pub point: Point3D,
     pub normal: Vec3,
+    pub outward_facing: bool,
     pub t: f32,
     pub mtrl: Rc<dyn Scatter>,
 }
