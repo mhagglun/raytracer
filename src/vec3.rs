@@ -68,18 +68,18 @@ impl Vec3 {
         self.x.abs() < EPSILON && self.y.abs() < EPSILON && self.z.abs() < EPSILON
     }
 
-    pub fn random() -> Vec3 {
+    pub fn random(low: f32, high: f32) -> Vec3 {
         let mut rng = rand::thread_rng();
         Vec3 {
-            x: rng.gen_range(-1.0..1.0),
-            y: rng.gen_range(-1.0..1.0),
-            z: rng.gen_range(-1.0..1.0),
+            x: rng.gen_range(low..high),
+            y: rng.gen_range(low..high),
+            z: rng.gen_range(low..high),
         }
     }
 
     pub fn random_in_unit_sphere() -> Vec3 {
         loop {
-            let v = Vec3::random();
+            let v = Vec3::random(-1.0, 1.0);
             if v.length() < 1.0 {
                 return v;
             }

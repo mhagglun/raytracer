@@ -7,7 +7,10 @@ pub struct Camera {
     origin: Point3D,
     lower_left_corner: Point3D,
     horizontal: Vec3,
-    vertial: Vec3,
+    vertical: Vec3,
+    cu: Vec3,
+    cv: Vec3,
+    lens_radius: f32,
 }
 
 impl Camera {
@@ -17,6 +20,8 @@ impl Camera {
         vup: Vec3,
         fov: f32,
         aspect_ratio: f32,
+        aperture: f32,
+        focus_dist: f32,
     ) -> Camera {
         // Vertical field-of-view in degrees
         let theta = std::f32::consts::PI / 180.0 * fov;
@@ -27,23 +32,29 @@ impl Camera {
         let cu = vup.cross(cw).unit_vector();
         let cv = cw.cross(cu);
 
-        let h = viewport_width * cu;
-        let v = viewport_height * cv;
+        let h = focus_dist * viewport_width * cu;
+        let v = focus_dist * viewport_height * cv;
 
-        let llc = viewfrom - h / 2.0 - v / 2.0 - cw;
+        let llc = viewfrom - h / 2.0 - v / 2.0 - focus_dist * cw;
 
         Camera {
             origin: viewfrom,
             horizontal: h,
-            vertial: v,
+            vertical: v,
             lower_left_corner: llc,
+            cu,
+            cv,
+            lens_radius: aperture / 2.0,
         }
     }
 
     pub fn get_ray(&self, u: f32, v: f32) -> Ray {
+        let rd = self.lens_radius * Vec3::random_in_unit_sphere();
+        let offset = self.cu * rd + self.cv * rd;
+
         Ray::new(
-            self.origin,
-            self.lower_left_corner + u * self.horizontal + v * self.vertial - self.origin,
+            self.origin + offset,
+            self.lower_left_corner + u * self.horizontal + v * self.vertical - self.origin - offset,
         )
     }
 }

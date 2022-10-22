@@ -1,12 +1,27 @@
 use crate::{
-    hit::HitRecord,
-    ray::Ray,
+    ray::{HitRecord, Ray},
     vec3::{Color, Vec3},
 };
 use rand::Rng;
 
 pub trait Scatter {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)>;
+}
+
+pub enum Material {
+    Lambertian(Lambertian),
+    Metal(Metal),
+    Dielectric(Dielectric),
+}
+
+impl Scatter for Material {
+    fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Color, Ray)> {
+        match self {
+            Material::Lambertian(l) => l.scatter(ray, hit_record),
+            Material::Metal(m) => m.scatter(ray, hit_record),
+            Material::Dielectric(d) => d.scatter(ray, hit_record),
+        }
+    }
 }
 
 pub struct Lambertian {

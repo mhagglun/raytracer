@@ -1,18 +1,17 @@
-use std::rc::Rc;
-
-use crate::hit::{HitRecord, Hittable};
-use crate::material::Scatter;
-use crate::ray::Ray;
-use crate::vec3::Point3D;
+use crate::{
+    materials::Material,
+    ray::{HitRecord, Hittable, Ray},
+    vec3::Point3D,
+};
 
 pub struct Sphere {
     pub center: Point3D,
     pub radius: f32,
-    pub mtrl: Rc<dyn Scatter>,
+    pub mtrl: Material,
 }
 
 impl Sphere {
-    pub fn new(center: Point3D, radius: f32, mtrl: Rc<dyn Scatter>) -> Sphere {
+    pub fn new(center: Point3D, radius: f32, mtrl: Material) -> Sphere {
         Sphere {
             center,
             radius,
@@ -40,11 +39,11 @@ impl Hittable for Sphere {
                     let outward_facing = ray.direction.dot(normal) < 0.0;
 
                     return Some(HitRecord {
-                        t: *root,
                         point: p,
                         normal: if outward_facing { normal } else { -normal },
                         outward_facing,
-                        mtrl: self.mtrl.clone(),
+                        t: *root,
+                        mtrl: &self.mtrl,
                     });
                 }
             }
@@ -55,14 +54,17 @@ impl Hittable for Sphere {
 
 #[cfg(test)]
 mod tests {
-    use super::{Hittable, Point3D, Ray, Rc, Sphere};
-    use crate::{material::Lambertian, vec3::Color};
+    use crate::materials::{Lambertian, Material};
+    use crate::vec3::Color;
+
+    use super::Hittable;
+    use super::{Point3D, Ray, Sphere};
 
     #[test]
     fn test_sphere_hit() {
         let sphere = {
             let center = Point3D::new(0.0, 0.0, 0.0);
-            let mtrl = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
+            let mtrl = Material::Lambertian(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
             Sphere {
                 center,
                 radius: 1.0,
