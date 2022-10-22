@@ -1,5 +1,8 @@
 use rand::Rng;
-use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub};
+use std::{
+    f32::EPSILON,
+    ops::{Add, AddAssign, Div, Mul, Neg, Sub},
+};
 
 #[derive(Clone, Copy)]
 /// Vector class for storing geometric vectors and colors.
@@ -47,6 +50,14 @@ impl Vec3 {
             y: self.y / len,
             z: self.z / len,
         }
+    }
+
+    pub fn reflect(self, normal: Vec3) -> Vec3 {
+        self - 2.0 * self.dot(normal) * normal
+    }
+
+    pub fn near_zero(self) -> bool {
+        self.x.abs() < EPSILON && self.y.abs() < EPSILON && self.z.abs() < EPSILON
     }
 
     pub fn random() -> Vec3 {
