@@ -1,6 +1,5 @@
-use std::io::{stderr, Write};
-
 use rand::Rng;
+use rayon::prelude::*;
 
 use crate::{
     camera::Camera,
@@ -38,32 +37,30 @@ pub fn render(
     world: &World,
     camera: Camera,
 ) {
-    let mut rng = rand::thread_rng();
-
-    // Start Rendering
-    println!("P3\n{} {}\n255", image_width, image_height);
     for y in (0..image_height).rev() {
-        eprint!(
-            "\rRendering image. Columns completed / total: {:3} / {}",
-            image_height - y - 1,
-            image_height
-        );
-        stderr().flush().unwrap();
+        eprintln!("Scanlines remaining: {}", y + 1);
 
-        for x in 0..image_width {
-            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+        let scanline: Vec<Color> = (0..image_width)
+            .into_par_iter()
+            .map(|x| {
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                for _ in 0..samples_per_pixel {
+                    let mut rng = rand::thread_rng();
+                    let random_u: f32 = rng.gen();
+                    let random_v: f32 = rng.gen();
 
-            for _ in 0..samples_per_pixel {
-                let rndm_x: f32 = rng.gen();
-                let rndm_y: f32 = rng.gen();
+                    let u = ((x as f32) + random_u) / ((image_width - 1) as f32);
+                    let v = ((y as f32) + random_v) / ((image_height - 1) as f32);
 
-                let u = ((x as f32) + rndm_x) / ((image_width - 1) as f32);
-                let v = ((y as f32) + rndm_y) / ((image_height - 1) as f32);
+                    let r = camera.get_ray(u, v);
+                    pixel_color += ray_color(&r, world, max_depth);
+                }
 
-                let ray = camera.get_ray(u, v);
-                pixel_color += ray_color(&ray, world, max_depth);
-            }
+                pixel_color
+            })
+            .collect();
 
+        for pixel_color in scanline {
             println!("{}", pixel_color.format_color(samples_per_pixel));
         }
     }
