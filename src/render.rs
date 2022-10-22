@@ -37,6 +37,8 @@ pub fn render(
     world: &World,
     camera: Camera,
 ) {
+    //Start rendering
+    println!("P3\n{} {}\n255", image_width, image_height);
     for y in (0..image_height).rev() {
         eprintln!("Scanlines remaining: {}", y + 1);
 
