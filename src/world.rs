@@ -41,8 +41,8 @@ pub fn random_world() -> World {
     let mut world = World::new();
 
     let ground_sphere = Sphere::new(
-        Point3D::new(0.0, -500.0, 0.0),
-        500.0,
+        Point3D::new(0.0, -1000.0, 0.0),
+        1000.0,
         Material::Lambertian(Lambertian::new(Color::new(0.5, 0.5, 0.5))),
     );
 
