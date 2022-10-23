@@ -68,18 +68,38 @@ impl Vec3 {
         self.x.abs() < EPSILON && self.y.abs() < EPSILON && self.z.abs() < EPSILON
     }
 
-    pub fn random(low: f32, high: f32) -> Vec3 {
-        let mut rng = rand::thread_rng();
+    fn random_double(min: f32, max: f32) -> f32 {
+        rand::thread_rng().gen_range(min..max)
+    }
+
+    pub fn random(min: f32, max: f32) -> Vec3 {
         Vec3 {
-            x: rng.gen_range(low..high),
-            y: rng.gen_range(low..high),
-            z: rng.gen_range(low..high),
+            x: Self::random_double(min, max),
+            y: Self::random_double(min, max),
+            z: Self::random_double(min, max),
+        }
+    }
+
+    pub fn random_in_unit_disk() -> Vec3 {
+        loop {
+            let v = Vec3::new(
+                Self::random_double(-1.0, 1.0),
+                Self::random_double(-1.0, 1.0),
+                0.0,
+            );
+            if v.length() < 1.0 {
+                return v;
+            }
         }
     }
 
     pub fn random_in_unit_sphere() -> Vec3 {
         loop {
-            let v = Vec3::random(-1.0, 1.0);
+            let v = Vec3::new(
+                Self::random_double(-1.0, 1.0),
+                Self::random_double(-1.0, 1.0),
+                Self::random_double(-1.0, 1.0),
+            );
             if v.length() < 1.0 {
                 return v;
             }
@@ -168,6 +188,18 @@ impl Mul<Vec3> for f32 {
             x: self * rhs.x,
             y: self * rhs.y,
             z: self * rhs.z,
+        }
+    }
+}
+
+impl Mul<f32> for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, lhs: f32) -> Vec3 {
+        Vec3 {
+            x: lhs * self.x,
+            y: lhs * self.y,
+            z: lhs * self.z,
         }
     }
 }

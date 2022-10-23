@@ -1,3 +1,5 @@
+use std::io::{stderr, Write};
+
 use rand::Rng;
 use rayon::prelude::*;
 
@@ -40,7 +42,11 @@ pub fn render(
     //Start rendering
     println!("P3\n{} {}\n255", image_width, image_height);
     for y in (0..image_height).rev() {
-        eprintln!("Scanlines remaining: {}", y + 1);
+        eprint!(
+            "\rRendering progress: {:2}%",
+            100 * (image_height - y) / image_height,
+        );
+        stderr().flush().unwrap();
 
         let scanline: Vec<Color> = (0..image_width)
             .into_par_iter()

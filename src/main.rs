@@ -7,10 +7,10 @@ use raytracer::{
 
 fn main() {
     // Image settings
-    const ASPECT_RATIO: f32 = 3.0 / 2.0;
-    const IMAGE_WIDTH: u32 = 1200;
+    const ASPECT_RATIO: f32 = 16.0 / 9.0;
+    const IMAGE_WIDTH: u32 = 256;
     const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
-    const SAMPLES_PER_PIXEL: u32 = 500;
+    const SAMPLES_PER_PIXEL: u32 = 300;
     const MAX_DEPTH: u32 = 50;
 
     // Instantiate world
@@ -29,8 +29,8 @@ fn main() {
         vup,
         20.0,
         ASPECT_RATIO,
-        dist_to_focus,
         aperture,
+        dist_to_focus,
     );
 
     // Render world

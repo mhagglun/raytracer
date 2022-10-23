@@ -41,15 +41,15 @@ pub fn random_world() -> World {
     let mut world = World::new();
 
     let ground_sphere = Sphere::new(
-        Point3D::new(0.0, -1000.0, 0.0),
-        1000.0,
+        Point3D::new(0.0, -500.0, 0.0),
+        500.0,
         Material::Lambertian(Lambertian::new(Color::new(0.5, 0.5, 0.5))),
     );
 
     world.add(Box::new(ground_sphere));
 
-    for a in -11..=11 {
-        for b in -11..=11 {
+    for a in -10..=10 {
+        for b in -10..=10 {
             let choose_mat: f32 = rng.gen();
             let center = Point3D::new(
                 (a as f32) + rng.gen_range(0.0..0.9),
